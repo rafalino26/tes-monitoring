@@ -5,10 +5,11 @@ const vm=require('node:vm');
 const fs=require('node:fs');
 const path=require('node:path');
 const root=path.join(__dirname,'..');
-function fixture(){
+function fixture(design=false){
  const node={innerHTML:'',textContent:'',close(){},querySelectorAll(){return []}};
  const context=vm.createContext({window:{},document:{querySelector:()=>node,querySelectorAll:()=>[],addEventListener(){}},location:{pathname:'/index.html',search:''},localStorage:{getItem:()=>null,setItem(){}},sessionStorage:{getItem:()=>null},structuredClone,URLSearchParams,Intl,crypto:require('node:crypto').webcrypto,setTimeout:()=>0,clearTimeout(){},confirm:()=>true,FormData:class{constructor(form){this.data=form.values;}get(k){return this.data[k]??null;}getAll(k){return [].concat(this.data[k]||[]);}}});
  vm.runInContext(fs.readFileSync(path.join(root,'data.js'),'utf8'),context);
+ if(design)vm.runInContext(fs.readFileSync(path.join(root,'design-data.js'),'utf8'),context);
  vm.runInContext(fs.readFileSync(path.join(root,'app.js'),'utf8').replace(/render\(\);\s*$/,''),context);
  return code=>vm.runInContext(code,context);
 }
@@ -23,3 +24,7 @@ test('New period is empty and existing populated range cannot change',()=>{const
 test('User-provided text is escaped and renderers do not crash',()=>{const r=fixture();assert.equal(r('esc("<script>&")'),'&lt;script&gt;&amp;');for(const expr of ['renderPrograms(true)','renderPrograms(false)','renderDetail()','renderKpis()','renderMilestones()','renderDivisions()','renderLibrary()','renderUpload()','renderLogin()','renderAdmin()','renderSources()'])assert.equal(typeof r(expr),'string');r('actor=db.users[0]');assert.equal(typeof r('renderAdmin()'),'string');assert.equal(typeof r('renderUpload()'),'string');});
 test('No passwords in demo data and no raw attached documents in repository',()=>{const r=fixture();assert.equal(r('db.users.some(u=>Object.keys(u).some(k=>/password/i.test(k)))'),false);assert.equal(fs.readdirSync(root).some(f=>/\.(pdf|xlsx)$/i.test(f)),false);});
 
+
+test('Design seed fills progress, owners, KPI values and component documents',()=>{const r=fixture(true);assert.equal(r('db.programs.every(p=>completion(activitiesFor(p.id))!==null)'),true);assert.equal(r('db.activities.every(a=>a.pic&&a.status!=="Belum ada data")'),true);assert.equal(r('db.kpis.every(k=>Object.values(k.actuals).every(v=>v!==null))'),true);assert.equal(r('db.components.every(c=>db.documents.some(d=>d.component===c.id))'),true);assert.equal(r('db.documents.length'),54);assert.equal(r('window.SEAMOLEC_DATA.kpis.every(k=>Object.values(k.actuals).every(v=>v===null))'),true);});
+test('Design renders normal screens without prototype banners or operational demo language',()=>{const r=fixture(true);for(const expr of ['renderPrograms(true)','renderPrograms(false)','renderDetail()','renderKpis()','renderMilestones()','renderLibrary()','renderUpload()','renderLogin()','renderDocument()'])assert.equal(/Prototipe|mode demo|dokumen demo|belum terhubung|disimpan lokal|IndexedDB/i.test(r(expr)),false,expr);assert.equal(r('main.innerHTML.includes("demo-banner")'),false);});
+test('Pre-rendered pages expose filled first paint to importers without JavaScript',()=>{for(const file of ['index.html','knowledge.html','kpi.html','flagship-ailos.html','flagship-ailos_kpi.html','flagship-ailos_documents.html']){const html=fs.readFileSync(path.join(root,file),'utf8');assert.ok(html.includes('design-data.js'));assert.ok(/<main[^>]*>[\s\S]+<\/main>/.test(html));assert.ok(!html.includes('<noscript>'));}assert.ok(fs.readFileSync(path.join(root,'index.html'),'utf8').includes('value="65"'));assert.ok(fs.readFileSync(path.join(root,'knowledge.html'),'utf8').includes('54 dokumen'));});

@@ -1,3 +1,45 @@
+# SEAMOLEC — Tampilan desain Figma
+
+Versi publik saat ini khusus bahan impor HTML to Design, bukan implementasi operasional. Progress, status, PIC, realisasi KPI, dan dokumen di halaman utama adalah data fiktif. Warna, tipografi, dan komponen Ruang lapang dipertahankan. Penanda data contoh hanya muncul di Admin.
+
+## Data tampilan dan data sumber
+
+- `data.js`: data rencana dari sumber asli, tetap dipertahankan tanpa mengisi realisasi fiktif.
+- `design-data.js`: dataset presentasi terpisah; 9 flagship, 42 komponen, 88 aktivitas dengan PIC/status, 12 seri KPI berisi realisasi, milestone berisi PIC/status, dan 54 dokumen contoh.
+- Baseline target nol di sumber diberi nilai contoh dalam dataset desain supaya semua capaian tahunan bisa terlihat. Angka tampilan bukan target resmi atau laporan realisasi.
+- `assets/`: satu PDF dan satu TXT contoh yang aman diunduh; bukan berkas sumber pengguna.
+- Penyimpanan desain menggunakan key `seamolec-figma-design-v2`, terpisah dari data perubahan prototype lama. Data browser lama tidak dihapus.
+- Nama PIC dan akun presentasi fiktif. Halaman login ditampilkan sebagai desain; tidak ada autentikasi/backend dan tidak ada password yang disimpan.
+
+## URL untuk impor Figma
+
+Awali dengan `index.html`, `programs.html`, `knowledge.html`, `kpi.html`, `milestones.html`, `upload.html`, `login.html`, dan `document.html`.
+
+Untuk setiap flagship, terdapat empat HTML terpisah. Contoh AILOS:
+
+- `flagship-ailos.html` — komponen dan aktivitas, komponen pertama terbuka.
+- `flagship-ailos_kpi.html` — target dan realisasi terkait.
+- `flagship-ailos_documents.html` — dokumen flagship.
+- `flagship-ailos_about.html` — penanggung jawab dan pendanaan.
+
+Nama file untuk flagship lain mengikuti akronim huruf kecil, termasuk `flagship-r-mode.html`. Navigasi memakai URL ini. HTML telah diisi saat build sehingga first paint dapat dibaca tanpa eksekusi JavaScript. JavaScript tetap mengaktifkan filter dan navigasi. Dukungan hasil impor tiap plugin tetap bergantung pada plugin yang digunakan.
+
+## Memperbarui snapshot HTML
+
+Setelah mengubah `app.js` atau dataset desain:
+
+```sh
+node scripts/prerender.cjs
+node --check app.js
+node --test tests/app.test.cjs
+```
+
+13 pengujian memeriksa integritas sumber asli, pengisian data desain, relasi dokumen, perhitungan, filter/sort, dan snapshot HTML. Tidak ada perubahan pada stylesheet untuk pembaruan ini. Admin dapat dibuka langsung melalui `admin.html` untuk melihat catatan data contoh dan mencoba editor lokal.
+
+## Catatan versi sebelum tampilan Figma
+
+Bagian di bawah mendokumentasikan prototype monitoring sebelumnya. Untuk kebutuhan operasional, baca rencana backendnya; penjelasan data kosong mengacu pada `data.js`, bukan dataset desain yang sekarang tampil.
+
 # SEAMOLEC — Monitoring FYDP
 
 Prototipe interaktif berbasis HTML, CSS, dan JavaScript untuk GitHub Pages. Mempertahankan visual **Ruang lapang**: krem, plum, rust, sage, Lora, Source Sans 3, kartu sederhana, dan ruang baca yang lega. Tidak memerlukan build atau dependensi frontend.
